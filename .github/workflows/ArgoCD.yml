@@ -1,0 +1,44 @@
+name: Deploy Hello-Argo via ArgoCD
+
+# Run this workflow every time a new commit pushed to main branch
+on:
+  push:
+    branches: [main]
+
+# Manually trigger this workflow
+# on: workflow_dispatch
+
+env:
+  GITHUB_SHA: ${{ github.sha }}
+  IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
+  IKS_PROD_CLUSTER_DAL: cti-cluster
+  IBM_CLOUD_SOUTH_REGION: us-south
+  APPLICATION_NAME: hello-argo
+
+jobs:
+ 
+  deploy:
+    name: Deploy to Mobile-Prod IKS Dal
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install IBM Cloud CLI
+        run: |
+          curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+          ibmcloud --version
+          ibmcloud config --check-version=false
+          ibmcloud plugin install -f kubernetes-service
+
+      - name: Authenticate with IBM Cloud CLI
+        run: |
+          ibmcloud login --apikey ${{ env.IBM_CLOUD_API_KEY }} -r ${{ env.IBM_CLOUD_SOUTH_REGION }} -g CTI-resgrp
+      - name: Set Cluster Context (DAL)
+        run: |
+          ibmcloud ks cluster config --cluster ${{ env.IKS_PROD_CLUSTER_DAL }}
+
+      - name: Apply Deployment
+        working-directory: ./kubernetes
+        run: kubectl apply -f argo-crd.yml -n argocd
