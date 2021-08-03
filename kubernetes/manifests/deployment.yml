@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: hello-argocd
+  name: hello-argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-argocd
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: hello-argocd
+    spec:
+      containers:
+      - image: jmt3559/hello-docker:latest
+        name: hello-argocd
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 200m
+            memory: 1Gi
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+status: {}
